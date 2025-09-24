@@ -1,0 +1,242 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html>
+<head>
+  <title>Investment Portfolio</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .chart-row { display: flex; justify-content: space-between; }
+    .chart-container { width: 48%; padding: 10px; vertical-align: top; }
+    canvas { max-width: 100%; height: auto !important; }
+  </style>
+</head>
+<body>
+  <h2>Portfolio Overview</h2>
+  <div class="chart-row">
+    <div class="chart-container">
+      <canvas id="portfolioChart1" width="300" height="300"></canvas>
+      <script>
+        const ctx1 = document.getElementById('portfolioChart1').getContext('2d');
+        new Chart(ctx1, {
+          type: 'pie',
+          data: {
+            labels: ['Blackstone Inc.', 'Alphabet Inc.', 'JPMorgan Chase & Co.', 'NVIDIA Corporation', 'Target Corporation', 'Tesla, Inc.'],
+            datasets: [{
+              data: [2.99083924, 0.99983292, 1.99988853, 5.35354154, 2.00123081, 10.00338217],
+              backgroundColor: [
+                'rgba(54, 162, 235, 0.8)', 'rgba(255, 99, 132, 0.8)', 'rgba(75, 192, 192, 0.8)',
+                'rgba(255, 205, 86, 0.8)', 'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)'
+              ],
+              borderColor: [
+                'rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)',
+                'rgba(255, 205, 86, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+              title: { display: true, text: 'Stock Quantities' }
+            }
+          }
+        });
+      </script>
+    </div>
+    <div class="chart-container">
+      <canvas id="portfolioChart2" width="300" height="300"></canvas>
+      <script>
+        const ctx2 = document.getElementById('portfolioChart2').getContext('2d');
+        new Chart(ctx2, {
+          type: 'pie',
+          data: {
+            labels: ['Blackstone Inc.', 'Alphabet Inc.', 'JPMorgan Chase & Co.', 'NVIDIA Corporation', 'Target Corporation', 'Tesla, Inc.'],
+            datasets: [{
+              data: [518.13, 171.75, 482.18, 735.21, 206.82, 3509.32],
+              backgroundColor: [
+                'rgba(54, 162, 235, 0.8)', 'rgba(255, 99, 132, 0.8)', 'rgba(75, 192, 192, 0.8)',
+                'rgba(255, 205, 86, 0.8)', 'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)'
+              ],
+              borderColor: [
+                'rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)',
+                'rgba(255, 205, 86, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+              title: { display: true, text: 'Stock Amount Invested (USD)' }
+            }
+          }
+        });
+      </script>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-container">
+      <canvas id="portfolioChart3" width="300" height="300"></canvas>
+      <script>
+        const ctx3 = document.getElementById('portfolioChart3').getContext('2d');
+        new Chart(ctx3, {
+          type: 'pie',
+          data: {
+            labels: ['Vanguard S&P 500 Growth ETF (VOOG)', 'Vanguard Total Stock Market ETF (VTI)', 'Howard Hughes Holdings Inc. (HHH)'],
+            datasets: [{
+              data: [0.24877878, 1.00085129, 1.6854339],
+              backgroundColor: [
+                'rgba(54, 162, 235, 0.8)', 'rgba(255, 99, 132, 0.8)', 'rgba(75, 192, 192, 0.8)'
+              ],
+              borderColor: [
+                'rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+              title: { display: true, text: 'ETFs & REIT Quantities' }
+            }
+          }
+        });
+      </script>
+    </div>
+    <div class="chart-container">
+      <canvas id="portfolioChart4" width="300" height="300"></canvas>
+      <script>
+        const ctx4 = document.getElementById('portfolioChart4').getContext('2d');
+        new Chart(ctx4, {
+          type: 'pie',
+          data: {
+            labels: ['Vanguard S&P 500 Growth ETF (VOOG)', 'Vanguard Total Stock Market ETF (VTI)', 'Howard Hughes Holdings Inc. (HHH)'],
+            datasets: [{
+              data: [84.48, 277.46, 116.82],
+              backgroundColor: [
+                'rgba(54, 162, 235, 0.8)', 'rgba(255, 99, 132, 0.8)', 'rgba(75, 192, 192, 0.8)'
+              ],
+              borderColor: [
+                'rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+              title: { display: true, text: 'ETFs & REIT Amount Invested (USD)' }
+            }
+          }
+        });
+      </script>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-container">
+      <canvas id="portfolioChart5" width="300" height="300"></canvas>
+      <script>
+        const ctx5 = document.getElementById('portfolioChart5').getContext('2d');
+        new Chart(ctx5, {
+          type: 'pie',
+          data: {
+            labels: ['SGOV', 'BlackRock Inc - Bonds', 'JP Morgan Chase & Co - Bonds', 'Berkshire Hathaway Inc - Bonds'],
+            datasets: [{
+              data: [0.99992051, 2, 1, 1],
+              backgroundColor: [
+                'rgba(54, 162, 235, 0.8)', 'rgba(255, 99, 132, 0.8)', 'rgba(75, 192, 192, 0.8)',
+                'rgba(255, 205, 86, 0.8)'
+              ],
+              borderColor: [
+                'rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)',
+                'rgba(255, 205, 86, 1)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+              title: { display: true, text: 'Fixed Income Quantities' }
+            }
+          }
+        });
+      </script>
+    </div>
+    <div class="chart-container">
+      <canvas id="portfolioChart6" width="300" height="300"></canvas>
+      <script>
+        const ctx6 = document.getElementById('portfolioChart6').getContext('2d');
+        new Chart(ctx6, {
+          type: 'pie',
+          data: {
+            labels: ['SGOV', 'BlackRock Inc - Bonds', 'JP Morgan Chase & Co - Bonds', 'Berkshire Hathaway Inc - Bonds'],
+            datasets: [{
+              data: [100.64, 1887.00, 1036.60, 885.80],
+              backgroundColor: [
+                'rgba(54, 162, 235, 0.8)', 'rgba(255, 99, 132, 0.8)', 'rgba(75, 192, 192, 0.8)',
+                'rgba(255, 205, 86, 0.8)'
+              ],
+              borderColor: [
+                'rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)',
+                'rgba(255, 205, 86, 1)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+              title: { display: true, text: 'Fixed Income Amount Invested (USD)' }
+            }
+          }
+        });
+      </script>
+    </div>
+  </div>
+</body>
+</html>
